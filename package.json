@@ -1,0 +1,58 @@
+{
+  "name": "scepter",
+  "version": "1.0.0",
+  "engines": {
+    "node": "12.14.1",
+    "npm": "6.13.4"
+  },
+  "description": "Backend for the Scepter website and online play",
+  "main": "./server/web/app.js",
+  "scripts": {
+    "build": "babel ./client/login ./client/helper --presets @babel/preset-react --out-file ./hosted/loginBundle.js",
+    "watchLoginBundle": "babel --watch ./client/login ./client/helper --presets @babel/preset-react --out-file ./hosted/loginBundle.js",
+    "nodemon": "nodemon --watch ./server/web ./server/web/app.js",
+    "nodemonWorker": "nodemon --watch ./server/worker ./server/worker/worker.js",
+    "start": "node ./server/web/app.js",
+    "startWorker": "node ./server/worker/worker.js",
+    "pretest": "eslint ./server --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "keywords": [
+    "Node",
+    "MVC",
+    "Redis",
+    "Login"
+  ],
+  "author": "Jake Alaimo",
+  "license": "tba",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-react": "^7.9.4",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-plugin-import": "^2.20.1",
+    "nodemon": "^2.0.2"
+  },
+  "dependencies": {
+    "bull": "^3.13.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "mongoose": "^5.9.5",
+    "redis": "^3.0.2",
+    "throng": "^4.0.0"
+  },
+  "otherDep": {
+    "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
+    "connect-redis": "^4.0.4",
+    "cookie-parser": "^1.4.5",
+    "csurf": "^1.11.0",
+    "express-session": "^1.17.0",
+    "helmet": "^3.21.3",
+    "serve-favicon": "^2.5.0",
+    "underscore": "^1.9.2"
+  }
+}
