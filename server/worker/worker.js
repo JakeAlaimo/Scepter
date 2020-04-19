@@ -1,4 +1,4 @@
-//this files launches a clustered worker process without defining worker behavior
+//this files launches a clustered worker process without defining specific worker behavior
 
 //workers perform background jobs independently to put less load on the web process
 //they share a redis event queue that the web process adds on to
@@ -15,13 +15,12 @@ const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 const workers = process.env.WEB_CONCURRENCY || 1;
-const maxJobsPerWorker = 50;
+const maxJobsPerWorker = 50; //this value should be configured accordingly
 
-//the function 
+//sets an individual worker in the cluster to process events add to the queue
 function start() {
   // Connect to the event queue
   let eventQueue = new Queue('event', REDIS_URL);
-
   eventQueue.process(maxJobsPerWorker, HandleEvent);
 }
 

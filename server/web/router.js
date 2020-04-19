@@ -6,6 +6,7 @@ const mid = require('./middleware');
 
 //sets up http requests with the appropriate server response
 const router = (app) => {
+  app.get('/job/:id', controllers.PollJob);
   app.post('/test', controllers.AddTestJob);
 };
 
