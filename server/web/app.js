@@ -1,21 +1,31 @@
-//initiates, configures, and launches the express instance
-//this is where any express addons should be hooked up
+// initiates, configures, and launches the express instance
+// this is where any express addons should be hooked up
 
+const path = require('path');
+const http = require('http');
 const express = require('express');
-//const expressHandlebars = require('express-handlebars');
-const SetRoutes = require('./router.js')
+// const expressHandlebars = require('express-handlebars');
+const Websocket = require('ws');
+
+const SetRoutes = require('./router.js');
 
 const PORT = process.env.PORT || process.env.NODE_PORT || 3000;
 
 const app = express();
-  
-//configure the callbacks associated with specific routes
-SetRoutes(app);
+app.use('/', express.static(path.resolve(`${__dirname}/../../_hosted/`)));
+// add more config here
 
-//start the now fully-configured web server
-app.listen(PORT, (err) => {
-    if (err) {
-      throw err;
-    }
-    console.log(`Listening on port ${PORT}`);
+const server = http.createServer(app);
+
+const wss = new Websocket.Server({ server });
+
+// configure the callbacks associated with specific routes
+SetRoutes(app, wss);
+
+// start the now fully-configured web server
+server.listen(PORT, (err) => {
+  if (err) {
+    throw err;
+  }
+  console.log(`Listening on port ${PORT}`);
 });
