@@ -8,8 +8,6 @@
   "description": "Backend for the Scepter website and online play",
   "main": "./server/web/app.js",
   "scripts": {
-    "build": "babel ./client/login ./client/helper --presets @babel/preset-react --out-file ./hosted/loginBundle.js",
-    "watchLoginBundle": "babel --watch ./client/login ./client/helper --presets @babel/preset-react --out-file ./hosted/loginBundle.js",
     "nodemon": "nodemon --watch ./server/web ./server/web/app.js",
     "nodemonWorker": "nodemon --watch ./server/worker ./server/worker/worker.js",
     "start": "node ./server/web/app.js",

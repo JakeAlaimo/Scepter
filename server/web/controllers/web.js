@@ -35,21 +35,21 @@ async function PollJob(req, res) {
   if (job === null) { 
     res.status(404).end(); // not likely a bad request, client might want to request job again
   } 
-  else {
-    // the job has not yet finished
-    if (job.finishedOn === null) {
-        // notify the client the job is ongoing. If applicable, communicate progress
-        res.status(202).json({ id: job.id, progress: job._progress });
-    } 
-    // job finished, send its data
-    else {
-        const result = job.returnvalue;
-        const reason = job.failedReason;
-        res.status(200).json({ id, result, reason });
 
-        // now that the data has been retrieved, remove this job from the queue
-        job.remove();
-    }
+  //the job has not yet finished
+  else if (job.finishedOn === null) {
+    // notify the client the job is ongoing. If applicable, communicate progress
+    res.status(202).json({ id: job.id, progress: job._progress });
+  } 
+  
+  // job finished, send its data
+  else {
+    const result = job.returnvalue;
+    const reason = job.failedReason;
+    res.status(200).json({ id, result, reason });
+
+    // now that the data has been retrieved, remove this job from the queue
+    job.remove();
   }
 }
 
