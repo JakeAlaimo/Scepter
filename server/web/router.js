@@ -12,17 +12,19 @@ const router = (app, wss) => {
   app.get('/isLocal', controllers.web.IsTestBuild);
 
   // websocket handling config
-  wss.on('connection', (ws, req) => {
+  wss.on('connection', (socket, req) => {
+    const ws = socket;
+
     // strip out the ip for ID purposes
     const xForwardedFor = req.headers['x-forwarded-for'];
     const ip = (xForwardedFor) ? xForwardedFor.split(/\s*,\s*/)[0] : req.socket.remoteAddress;
 
-    //configure the message 'routes' of the websocket
-    ws["input"] = controllers.websocket.TestText;
+    // configure the message 'routes' of the websocket
+    ws.input = controllers.websocket.TestText;
     ws['join room'] = controllers.websocket.AddToRoom;
 
-    //handles messages as they come
-    ws.on("message", (data) => {
+    // handles messages as they come
+    ws.on('message', (data) => {
       const msg = JSON.parse(data);
       ws[msg.type](msg.data, ip, ws);
     });

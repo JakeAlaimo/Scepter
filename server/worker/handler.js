@@ -7,9 +7,7 @@ const work = {
     console.log(`${data.ip} has joined room ${data.room}. Hi!`);
     return { room: data.room, data: { type: 'log', message: `${data.ip} has joined room ${data.room}. Hi!` } };
   },
-  text: (data)=>{
-    return { room: data.room, data: { type: 'log', message: data.text } };
-  }
+  text: (data) => ({ room: data.room, data: { type: 'log', message: data.text } }),
 
 };
 
