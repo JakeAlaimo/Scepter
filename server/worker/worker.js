@@ -11,7 +11,7 @@ const throng = require('throng');
 const Queue = require('bull');
 const HandleEvent = require('./handler.js');
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_URL = process.env.REDISCLOUD_URL || 'redis://127.0.0.1:6379';
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 const workers = process.env.WEB_CONCURRENCY || 1;
