@@ -22,6 +22,9 @@ function RemoveClient(ip) {
   delete clients[ip];
 }
 
+function TestText(data, ip) {
+  eventQueue.add({ type: 'text', "data": { client: ip, text: data } });
+}
 
 // job completed events are the mechanism through which workers trigger messages to the client
 // jobs may set themselves to trigger messages by setting a target in their return value JSON
@@ -40,3 +43,4 @@ eventQueue.on('global:completed', (jobId, result) => {
 
 module.exports.AddClient = AddClient;
 module.exports.RemoveClient = RemoveClient;
+module.exports.TestText = TestText;

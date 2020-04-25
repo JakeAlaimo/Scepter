@@ -7,7 +7,7 @@ function Init()
         let socket = CreateSocket(data.isLocal);
 
         document.querySelector("input").onclick = function() {
-            socket.Send(document.querySelector("textarea").value);
+            socket.Send(JSON.stringify({type:"input", data: document.querySelector("textarea").value}));
         };
     });
 

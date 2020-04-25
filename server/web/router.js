@@ -5,7 +5,7 @@ const controllers = require('./controllers');
 // const mid = require('./middleware');
 
 // sets up http requests with the appropriate server response
-// also 'routes' websocket connections and disconnections
+// also 'routes' websocket connections, disconnections, and messages
 const router = (app, wss) => {
   app.get('/job/:id', controllers.web.PollJob);
   app.post('/test', controllers.web.AddTestJob);
@@ -17,8 +17,17 @@ const router = (app, wss) => {
     const xForwardedFor = req.headers['x-forwarded-for'];
     const ip = (xForwardedFor) ? xForwardedFor.split(/\s*,\s*/)[0] : req.socket.remoteAddress;
 
-    controllers.websocket.AddClient(ws, ip);
+    //configure the message 'routes' of the websocket
+    ws["input"] = controllers.websocket.TestText;
 
+    //handles messages as they come
+    ws.on("message", (data) => {
+      const msg = JSON.parse(data);
+      ws[msg.type](msg.data, ip);
+    });
+
+    //track the configured connection
+    controllers.websocket.AddClient(ws, ip);
     ws.on('close', () => controllers.websocket.RemoveClient(ip));
   });
 };

@@ -7,7 +7,9 @@ const work = {
     console.log(`Saying hi to ${data.client}`);
     return { target: data.client, data: { type: 'log', message: 'Server: Thanks for connecting!' } };
   },
-
+  text: (data)=>{
+    return { target: data.client, data: { type: 'log', message: data.text } };
+  }
 
 };
 
