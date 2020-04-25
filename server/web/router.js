@@ -2,13 +2,14 @@
 // does NOT specify the implementation of these responses
 
 const controllers = require('./controllers');
-//const mid = require('./middleware');
+// const mid = require('./middleware');
 
 // sets up http requests with the appropriate server response
 // also 'routes' websocket connections and disconnections
 const router = (app, wss) => {
   app.get('/job/:id', controllers.web.PollJob);
   app.post('/test', controllers.web.AddTestJob);
+  app.get('/isLocal', controllers.web.IsTestBuild);
 
   // websocket handling config
   wss.on('connection', (ws, req) => {

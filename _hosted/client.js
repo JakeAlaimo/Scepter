@@ -1,17 +1,24 @@
 function Init()
 {
-    let socket = CreateSocket();
+    fetch("/isLocal").then((res) => {
+        return res.json();
+    }).then((data)=>{
 
-    document.querySelector("input").onclick = function() {
-        socket.Send(document.querySelector("textarea").value);
-    };
+        let socket = CreateSocket(data.isLocal);
+
+        document.querySelector("input").onclick = function() {
+            socket.Send(document.querySelector("textarea").value);
+        };
+    });
+
+   
 }
 
-function CreateSocket()
+function CreateSocket(isLocal)
 {
     let socket = {
 
-        sock: new WebSocket("ws://scepter-game.herokuapp.com"),
+        sock: (isLocal) ? new WebSocket("ws:127.0.0.1:3000"): new WebSocket("wss:scepter-game.herokuapp.com"),
 
         Receive: function(msg)
         {

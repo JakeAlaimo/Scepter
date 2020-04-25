@@ -16,7 +16,6 @@ app.use('/', express.static(path.resolve(`${__dirname}/../../_hosted/`)));
 // add more config here
 
 const server = http.createServer(app);
-
 const wss = new Websocket.Server({ server });
 
 // configure the callbacks associated with specific routes

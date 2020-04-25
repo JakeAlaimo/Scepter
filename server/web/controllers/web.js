@@ -32,18 +32,17 @@ async function PollJob(req, res) {
   const job = await eventQueue.getJob(id);
 
   // requested job not available, possibly cleared
-  if (job === null) { 
+  if (job === null) {
     res.status(404).end(); // not likely a bad request, client might want to request job again
-  } 
+    return;
+  }
 
-  //the job has not yet finished
-  else if (job.finishedOn === null) {
+  // the job has not yet finished
+  if (job.finishedOn === null) {
     // notify the client the job is ongoing. If applicable, communicate progress
     res.status(202).json({ id: job.id, progress: job._progress });
-  } 
-  
-  // job finished, send its data
-  else {
+  } else {
+    // job finished, send its data
     const result = job.returnvalue;
     const reason = job.failedReason;
     res.status(200).json({ id, result, reason });
@@ -53,5 +52,13 @@ async function PollJob(req, res) {
   }
 }
 
+// notifies the client whether the app is running locally
+// for setting up websocket addr appropriately on the client
+function IsTestBuild(req, res) {
+  console.log({ isLocal: process.env.NODE_ENV !== 'production' });
+  res.status(200).json({ isLocal: process.env.NODE_ENV !== 'production' });
+}
+
 module.exports.AddTestJob = AddTestJob;
 module.exports.PollJob = PollJob;
+module.exports.IsTestBuild = IsTestBuild;
