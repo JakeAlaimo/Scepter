@@ -7,8 +7,10 @@ function Init()
         let socket = CreateSocket(data.isLocal);
 
         document.querySelector("input").onclick = function() {
-            socket.Send(JSON.stringify({type:"input", data: document.querySelector("textarea").value}));
+            socket.Send(JSON.stringify({type:"input", data: {text: document.querySelector("textarea").value, room: "AAAA"}}));
         };
+
+        
     });
 
    
@@ -34,7 +36,12 @@ function CreateSocket(isLocal)
         }
     };
 
-    socket.sock.addEventListener("message", socket.Receive)
+    socket.sock.addEventListener("message", socket.Receive);
+
+    socket.sock.addEventListener('open', function (event) {
+        //join the appropriate room
+        socket.Send(JSON.stringify({type: "join room", data:{room: "AAAA"}}));
+    });
 
     return socket;
 }

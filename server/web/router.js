@@ -19,16 +19,13 @@ const router = (app, wss) => {
 
     //configure the message 'routes' of the websocket
     ws["input"] = controllers.websocket.TestText;
+    ws['join room'] = controllers.websocket.AddToRoom;
 
     //handles messages as they come
     ws.on("message", (data) => {
       const msg = JSON.parse(data);
-      ws[msg.type](msg.data, ip);
+      ws[msg.type](msg.data, ip, ws);
     });
-
-    //track the configured connection
-    controllers.websocket.AddClient(ws, ip);
-    ws.on('close', () => controllers.websocket.RemoveClient(ip));
   });
 };
 

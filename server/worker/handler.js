@@ -4,11 +4,11 @@
 const work = {
   log: (data) => { console.log(data.message); },
   welcome: (data) => {
-    console.log(`Saying hi to ${data.client}`);
-    return { target: data.client, data: { type: 'log', message: 'Server: Thanks for connecting!' } };
+    console.log(`${data.ip} has joined room ${data.room}. Hi!`);
+    return { room: data.room, data: { type: 'log', message: `${data.ip} has joined room ${data.room}. Hi!` } };
   },
   text: (data)=>{
-    return { target: data.client, data: { type: 'log', message: data.text } };
+    return { room: data.room, data: { type: 'log', message: data.text } };
   }
 
 };

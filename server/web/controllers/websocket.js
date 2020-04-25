@@ -2,45 +2,88 @@
 // due to the persistent nature of websocket connections, this file must save state
 
 const Queue = require('bull');
+const redis = require('redis');
 
 const REDIS_URL = process.env.REDISCLOUD_URL || 'redis://127.0.0.1:6379';
 
+const redisClient = redis.createClient(REDIS_URL);
 const eventQueue = new Queue('event', REDIS_URL);
 
 
-// the websocket connections this server is maintaining, indexed by ip
-const clients = {};
+// the websocket connections this server is maintaining, organized by rooms
+//members of each room are websocket connections indexed by IP
+const rooms = {};
 
-// adds websocket connection to this server's address book
-function AddClient(client, ip) {
-  clients[ip] = client;
-  eventQueue.add({ type: 'welcome', data: { client: ip } });
+// adds websocket connection to the specified room (if it exists)
+function AddToRoom(data, ip, client) {
+  const room = data.room;
+
+  if(rooms[room] !== undefined && rooms[room] !== null) //room exists because we already know about it
+  {
+    rooms[room][ip] = client; //add the client to the room, indexed by their ip
+    eventQueue.add({ type: 'welcome', data: {ip: ip, room: room } }); //let all in the room know that they've joined
+    client.on('close', () => RemoveClient(room, ip));
+    return;
+  }
+
+  redisClient.get(`room${room}`, (err, reply)=>{
+    if(err) {
+      console.log(err);
+      return false;
+    }
+    
+    if(reply !== null) //there is an entry for this room, so it exists
+    {
+      rooms[room] = {}; //init this room so we can store clients
+      rooms[room][ip] = client; //add the client to the room, indexed by their ip
+      eventQueue.add({ type: 'welcome', data: {ip: ip, room: room } }); //let all in the room know that they've joined
+      client.on('close', () => RemoveClient(room, ip));
+    }
+  }); 
 }
 
 // removes websocket connection from this server's address book
-function RemoveClient(ip) {
-  delete clients[ip];
+function RemoveClient(room, ip) {
+  delete rooms[room][ip];
+
+  if(rooms[room] === undefined || rooms[room] !== null) //if no more ws connections are in this room
+    delete rooms[room]; //delete the room too
 }
 
-function TestText(data, ip) {
-  eventQueue.add({ type: 'text', "data": { client: ip, text: data } });
+
+function TestText(data) {
+  eventQueue.add({ type: 'text', "data": { room: data.room, text: data.text } });
 }
 
 // job completed events are the mechanism through which workers trigger messages to the client
 // jobs may set themselves to trigger messages by setting a target in their return value JSON
 eventQueue.on('global:completed', (jobId, result) => {
   const jobResults = JSON.parse(result);
-  const targetClient = clients[jobResults.target];
+  const targetRoom = rooms[jobResults.room];
+  const targetClient = rooms[jobResults.room][jobResults.client];
 
-  if (targetClient) {
-    console.log('sending message');
-    targetClient.send(JSON.stringify(jobResults.data));
+  if (targetRoom) {
+    if(jobResults.client === undefined) //broadcast to whole room, no client specified
+    {      
+      for (const id of Object.keys(targetRoom)) {
+        targetRoom[id].send(JSON.stringify(jobResults.data));
+      }
+      
+      eventQueue.getJob(jobId).then(function(job) {
+        job.remove();
+      });
+    }
+    else if(targetClient !== undefined) //broadcast to specific client (that this node knows of)
+    {
+      targetClient.send(JSON.stringify(jobResults.data));
+
+      eventQueue.getJob(jobId).then(function(job) {
+        job.remove();
+      });
+    }
   }
-
-  console.log(`Job ${jobId} completed with result ${result}`);
 });
 
 
-module.exports.AddClient = AddClient;
-module.exports.RemoveClient = RemoveClient;
+module.exports.AddToRoom = AddToRoom;
 module.exports.TestText = TestText;
