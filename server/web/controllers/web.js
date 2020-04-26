@@ -55,7 +55,6 @@ async function PollJob(req, res) {
 // notifies the client whether the app is running locally
 // for setting up websocket addr appropriately on the client
 function IsTestBuild(req, res) {
-  console.log({ isLocal: process.env.NODE_ENV !== 'production' });
   res.status(200).json({ isLocal: process.env.NODE_ENV !== 'production' });
 }
 
