@@ -19,7 +19,7 @@ function RemoveClient(room, ip) {
   delete rooms[room][ip];
 
   // if room is now empty
-  if (rooms[room] === undefined || rooms[room] !== null) {
+  if (Object.keys(rooms[room]).length === 0 && rooms[room].constructor === Object) {
     delete rooms[room]; // delete the room too
   }
 }
