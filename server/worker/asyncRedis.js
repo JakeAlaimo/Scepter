@@ -15,7 +15,9 @@ const LRem = promisify(redisClient.LREM).bind(redisClient);
 const LPush = promisify(redisClient.LPUSH).bind(redisClient);
 
 const HSet = promisify(redisClient.HSET).bind(redisClient);
+const HGet = promisify(redisClient.HGET).bind(redisClient);
 
+const Del = promisify(redisClient.DEL).bind(redisClient);
 
 module.exports = {
   LRange,
@@ -23,4 +25,7 @@ module.exports = {
   LRem,
   LPush,
   HSet,
+  HGet,
+
+  Del,
 };

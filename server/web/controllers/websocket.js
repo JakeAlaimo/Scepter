@@ -49,7 +49,7 @@ function AddToRoom(data, websocket) {
   }
 
   // this web node can't confirm the room, check redis storage (async)
-  redisClient.get(`room${room}`, (err, reply) => {
+  redisClient.get(`${room}`, (err, reply) => {
     if (err) {
       console.log(err);
     }

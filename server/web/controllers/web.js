@@ -25,7 +25,7 @@ function IsTestBuild(req, res) {
 async function RequestGame(req, res) {
   const event = {
     type: 'game requested',
-    data: { message: 'settings here' },
+    data: { public: true },
   };
 
   AddEvent(res, event);
