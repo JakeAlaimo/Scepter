@@ -52,7 +52,7 @@ function CreateSocket(isLocal)
 
     socket.sock.addEventListener('open', function (event) {
         //join the appropriate room
-        socket.Send(JSON.stringify({type: "join room", data:{room: "AAAA"}}));
+        socket.Send(JSON.stringify({type: "join", data:{room: "AAAA"}}));
     });
 
     return socket;

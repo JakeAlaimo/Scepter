@@ -15,6 +15,22 @@ async function AddEvent(res, eventData) {
   res.status(202).json({ id: job.id });
 }
 
+// notifies the client whether the app is running locally
+// for setting up websocket addr appropriately on the client
+function IsTestBuild(req, res) {
+  res.status(200).json({ isLocal: process.env.NODE_ENV !== 'production' });
+}
+
+// look for (or create) a game matching the provided settings
+async function RequestGame(req, res) {
+  const event = {
+    type: 'game requested',
+    data: { message: 'settings here' },
+  };
+
+  AddEvent(res, event);
+}
+
 async function AddTestJob(req, res) {
   const event = {
     type: 'log',
@@ -52,12 +68,9 @@ async function PollJob(req, res) {
   }
 }
 
-// notifies the client whether the app is running locally
-// for setting up websocket addr appropriately on the client
-function IsTestBuild(req, res) {
-  res.status(200).json({ isLocal: process.env.NODE_ENV !== 'production' });
-}
 
-module.exports.AddTestJob = AddTestJob;
-module.exports.PollJob = PollJob;
 module.exports.IsTestBuild = IsTestBuild;
+module.exports.RequestGame = RequestGame;
+module.exports.AddTestJob = AddTestJob;
+
+module.exports.PollJob = PollJob;

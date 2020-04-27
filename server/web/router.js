@@ -8,8 +8,10 @@ const controllers = require('./controllers');
 // also 'routes' websocket connections, disconnections, and messages
 const router = (app, wss) => {
   app.get('/job/:id', controllers.web.PollJob);
-  app.post('/test', controllers.web.AddTestJob);
   app.get('/isLocal', controllers.web.IsTestBuild);
+
+  app.post('/requestGame', controllers.web.RequestGame);
+  app.post('/test', controllers.web.AddTestJob);
 
   // websocket handling config
   wss.on('connection', (socket) => {
@@ -17,7 +19,7 @@ const router = (app, wss) => {
 
     // configure the message 'routes' of the websocket
     ws.input = controllers.websocket.TestText;
-    ws['join room'] = controllers.websocket.AddToRoom;
+    ws.join = controllers.websocket.AddToRoom;
     ws.pong = controllers.websocket.Pong;
 
 

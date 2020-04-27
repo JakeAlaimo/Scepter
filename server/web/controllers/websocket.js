@@ -70,6 +70,9 @@ function TestText(data) {
 
 // response to ping received, schedule the next ping
 function Pong(data, client) {
+  if (client.room === undefined || client.id === undefined) {
+    return;
+  }
   eventQueue.add({ type: 'ping', data: { room: client.room, id: client.id } });
 }
 
@@ -79,6 +82,11 @@ function Pong(data, client) {
 // job completed events are the mechanism through which workers trigger messages to the client
 // jobs may set themselves to trigger messages by setting a target in their return value JSON
 eventQueue.on('global:completed', (jobId, result) => {
+  // filter out any jobs that don't trigger messages
+  if (!result || !result.room) {
+    return;
+  }
+
   const jobResults = JSON.parse(result);
   const targetRoom = rooms[jobResults.room];
   const targetClient = rooms[jobResults.room][jobResults.client];
