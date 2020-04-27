@@ -25,29 +25,30 @@ function RemoveClient(room, id) {
   }
 }
 
+// helper function to set up client once their room is known to exist
+function AddClient(room, websocket) {
+  const client = websocket;
+
+  const id = uuidv4();
+  client.id = id;
+  client.room = room;
+
+  rooms[room][id] = client; // add the client to the room, indexed by their ip
+  eventQueue.add({ type: 'join', data: { id, room } }); // let all in the room know that they've joined
+  client.on('close', () => RemoveClient(room, id));
+}
+
 // adds websocket connection to the specified room (if it exists)
 function AddToRoom(data, websocket) {
   const { room } = data;
-  const client = websocket;
-
-  // called in the sync and async room validation contexts
-  const AddClient = function () {
-    const id = uuidv4();
-    client.id = id;
-    client.room = room;
-
-    rooms[room][id] = client; // add the client to the room, indexed by their ip
-    eventQueue.add({ type: 'join', data: { id, room } }); // let all in the room know that they've joined
-    client.on('close', () => RemoveClient(room, id));
-  };
 
   // exists since we already know about it
   if (rooms[room] !== undefined && rooms[room] !== null) {
-    AddClient();
+    AddClient(room, websocket);
     return;
   }
 
-  // this web node can't confirm the room, check redis storage
+  // this web node can't confirm the room, check redis storage (async)
   redisClient.get(`room${room}`, (err, reply) => {
     if (err) {
       console.log(err);
@@ -56,10 +57,12 @@ function AddToRoom(data, websocket) {
     // there is an entry for this room, so it exists
     if (reply !== null) {
       rooms[room] = {}; // init this room so we can store clients
-      AddClient();
+      AddClient(room, websocket);
     }
   });
 }
+
+// -----------------------------------handle ws messages from client--------------------------------
 
 function TestText(data) {
   eventQueue.add({ type: 'text', data: { room: data.room, text: data.text } });
@@ -69,6 +72,9 @@ function TestText(data) {
 function Pong(data, client) {
   eventQueue.add({ type: 'ping', data: { room: client.room, id: client.id } });
 }
+
+
+// -----------------------------------send ws messages to client------------------------------------
 
 // job completed events are the mechanism through which workers trigger messages to the client
 // jobs may set themselves to trigger messages by setting a target in their return value JSON
