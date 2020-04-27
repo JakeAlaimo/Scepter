@@ -26,20 +26,18 @@ function RemoveClient(room, id) {
 }
 
 // adds websocket connection to the specified room (if it exists)
-function AddToRoom(data, /* id, */ client) {
+function AddToRoom(data, websocket) {
   const { room } = data;
+  const client = websocket;
 
   // called in the sync and async room validation contexts
   const AddClient = function () {
     const id = uuidv4();
-
-    // break if this client has been added already
-    if (rooms[room][id] !== undefined) {
-      return;
-    }
+    client.id = id;
+    client.room = room;
 
     rooms[room][id] = client; // add the client to the room, indexed by their ip
-    eventQueue.add({ type: 'welcome', data: { id, room } }); // let all in the room know that they've joined
+    eventQueue.add({ type: 'join', data: { id, room } }); // let all in the room know that they've joined
     client.on('close', () => RemoveClient(room, id));
   };
 
@@ -65,6 +63,11 @@ function AddToRoom(data, /* id, */ client) {
 
 function TestText(data) {
   eventQueue.add({ type: 'text', data: { room: data.room, text: data.text } });
+}
+
+// response to ping received, schedule the next ping
+function Pong(data, client) {
+  eventQueue.add({ type: 'ping', data: { room: client.room, id: client.id } });
 }
 
 // job completed events are the mechanism through which workers trigger messages to the client
@@ -98,3 +101,4 @@ eventQueue.on('global:completed', (jobId, result) => {
 
 module.exports.AddToRoom = AddToRoom;
 module.exports.TestText = TestText;
+module.exports.Pong = Pong;

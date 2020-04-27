@@ -22,9 +22,21 @@ function CreateSocket(isLocal)
 
         sock: (isLocal) ? new WebSocket("ws:127.0.0.1:3000"): new WebSocket("wss:scepter-game.herokuapp.com"),
 
-        Receive: function(msg)
+        Receive: function(msg, socket)
         {
-            document.querySelector("p").innerHTML = msg.data;
+            let msgData = JSON.parse(msg.data);
+
+            switch(msgData.type)
+            {
+                case 'ping':
+                    socket.Send(JSON.stringify({type: "pong"}));
+                    break;
+                default:
+                    document.querySelector("p").innerHTML = msg.data;
+                break;
+            }
+
+
         },
 
         Send: function (msg)
@@ -36,7 +48,7 @@ function CreateSocket(isLocal)
         }
     };
 
-    socket.sock.addEventListener("message", socket.Receive);
+    socket.sock.addEventListener("message", (e) => {socket.Receive(e, socket)});
 
     socket.sock.addEventListener('open', function (event) {
         //join the appropriate room
