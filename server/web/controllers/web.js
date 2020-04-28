@@ -21,11 +21,17 @@ function IsTestBuild(req, res) {
   res.status(200).json({ isLocal: process.env.NODE_ENV !== 'production' });
 }
 
+// loads up the game screen
+function LoadGame(req, res) {
+  res.render('game', { id: req.params.id });
+}
+
+
 // look for (or create) a game matching the provided settings
 async function RequestGame(req, res) {
   const event = {
     type: 'game requested',
-    data: { public: true },
+    data: { public: req.body.public },
   };
 
   AddEvent(res, event);
@@ -69,6 +75,7 @@ async function PollJob(req, res) {
 }
 
 
+module.exports.LoadGame = LoadGame;
 module.exports.IsTestBuild = IsTestBuild;
 module.exports.RequestGame = RequestGame;
 module.exports.AddTestJob = AddTestJob;

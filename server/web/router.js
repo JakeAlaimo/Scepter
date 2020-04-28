@@ -8,6 +8,7 @@ const controllers = require('./controllers');
 // also 'routes' websocket connections, disconnections, and messages
 const router = (app, wss) => {
   app.get('/job/:id', controllers.web.PollJob);
+  app.get('/game/:id', controllers.web.LoadGame);
   app.get('/isLocal', controllers.web.IsTestBuild);
 
   app.post('/requestGame', controllers.web.RequestGame);

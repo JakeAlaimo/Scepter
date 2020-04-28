@@ -49,13 +49,13 @@ function AddToRoom(data, websocket) {
   }
 
   // this web node can't confirm the room, check redis storage (async)
-  redisClient.get(`${room}`, (err, reply) => {
+  redisClient.EXISTS(room, (err, reply) => {
     if (err) {
       console.log(err);
     }
 
-    // there is an entry for this room, so it exists
-    if (reply !== null) {
+    // there is an entry for this room
+    if (reply === 1) {
       rooms[room] = {}; // init this room so we can store clients
       AddClient(room, websocket);
     }
@@ -64,8 +64,8 @@ function AddToRoom(data, websocket) {
 
 // -----------------------------------handle ws messages from client--------------------------------
 
-function TestText(data) {
-  eventQueue.add({ type: 'text', data: { room: data.room, text: data.text } });
+function TestText(data, client) {
+  eventQueue.add({ type: 'text', data: { room: client.room, text: data.text } });
 }
 
 // response to ping received, schedule the next ping
@@ -83,15 +83,16 @@ function Pong(data, client) {
 // jobs may set themselves to trigger messages by setting a target in their return value JSON
 eventQueue.on('global:completed', (jobId, result) => {
   // filter out any jobs that don't trigger messages
-  if (!result || !result.room) {
+  if (!result) {
     return;
   }
 
   const jobResults = JSON.parse(result);
   const targetRoom = rooms[jobResults.room];
-  const targetClient = rooms[jobResults.room][jobResults.client];
 
   if (targetRoom) {
+    const targetClient = rooms[jobResults.room][jobResults.client];
+
     if (jobResults.client === undefined) {
       // broadcast to whole room, no client specified
       Object.keys(targetRoom).forEach((id) => {

@@ -10,7 +10,7 @@ async function CloseGame(gameID, ms) {
       redis.Del(gameID); // delete this game room outright
 
       // remove from lists if necessary
-      redis.LRem('Open Games', 1, gameID); 
+      redis.LRem('Open Games', 1, gameID);
       clearInterval(interval);
     }
   }, ms);
