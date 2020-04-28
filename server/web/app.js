@@ -14,7 +14,7 @@ const PORT = process.env.PORT || process.env.NODE_PORT || 3000;
 
 const app = express();
 app.use('/', express.static(path.resolve(`${__dirname}/../../_hosted/`)));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.engine('handlebars', expressHandlebars({ defaultLayout: 'main' }));
 app.set('view engine', 'handlebars');
