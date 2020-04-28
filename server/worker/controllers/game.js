@@ -28,7 +28,7 @@ async function CreateGame(settings) {
     redis.LPush('Open Games', gameID);
   }
 
-  CloseGame(gameID, 60000); // close the game room when empty
+  CloseGame(gameID, 6000000); // close the game room when empty
 
   return gameID;
 }

@@ -8,7 +8,7 @@ const work = {
   join: controllers.utility.JoinRoom,
   ping: controllers.utility.Ping,
   'game requested': controllers.game.GetGame,
-  text: (data) => ({ room: data.room, data: { message: data.text } }),
+  text: (data) => ({ room: data.room, data: { type: 'chat', message: data.text } }),
 
 };
 

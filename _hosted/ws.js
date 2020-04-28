@@ -26,6 +26,13 @@ class Socket {
         case 'ping':
             this.Send(JSON.stringify({type: "pong"}));
             break;
+        case 'chat':
+            let li = document.createElement("li");
+            var textnode = document.createTextNode(msgData.message); 
+            li.appendChild(textnode);// = msgData.message;
+
+            document.querySelector("#chat ul").appendChild(li);
+            break;
         default:
             document.querySelector("p").innerHTML = msg.data;
         break;
