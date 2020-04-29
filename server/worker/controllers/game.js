@@ -4,7 +4,7 @@ const redis = require('../asyncRedis.js');
 // if no players are connected, clean up the game room
 async function CloseGame(gameID, ms) {
   const interval = setInterval(async () => {
-    const connections = await redis.HGet(gameID, 'NumPlayers');
+    const connections = await redis.HGet(gameID, 'NumConnected');
 
     if (connections <= 0) {
       redis.Del(gameID); // delete this game room outright
@@ -21,7 +21,13 @@ async function CreateGame(settings) {
   const gameID = uuidv4(); // produce an identifier for the game
 
   // configure all of the game settings
-  await redis.HSet(gameID, 'NumPlayers', 0);
+  const settingsFormatted = []; //will store settings in the format '[key1, val1, ...]'
+  Object.entries(settings).forEach((keyVal) => settingsFormatted.push(keyVal[0], keyVal[1]));
+  await redis.HMSet(gameID, settingsFormatted);
+
+  // now set initial game state
+  await redis.HMSet(gameID, 'NumPlayers', 0);
+  await redis.HSet(gameID, 'NumConnected', 0);
 
   // optionally, push the game onto the public list
   if (settings.public === true) {
