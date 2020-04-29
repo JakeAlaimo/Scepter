@@ -12,12 +12,15 @@ const eventQueue = new Queue('event', REDIS_URL);
 
 
 // the websocket connections this server is maintaining, organized by rooms
-// members of each room are websocket connections indexed by IP
+// members of each room are websocket connections indexed by ID
 const rooms = {};
 
 // removes websocket connection from this server's address book
 function RemoveClient(room, id) {
   delete rooms[room][id];
+
+  // remove this connection from the game state
+  eventQueue.add({ type: 'disconnect', data: { room, client: id } });
 
   // if room is now empty
   if (Object.keys(rooms[room]).length === 0 && rooms[room].constructor === Object) {
@@ -33,8 +36,8 @@ function AddClient(room, websocket) {
   client.id = id;
   client.room = room;
 
-  rooms[room][id] = client; // add the client to the room, indexed by their ip
-  eventQueue.add({ type: 'join', data: { id, room } }); // let all in the room know that they've joined
+  rooms[room][id] = client; // add the client to the room, indexed by their ID
+  eventQueue.add({ type: 'join', data: { client: id, room } }); // let all in the room know that they've joined
   client.on('close', () => RemoveClient(room, id));
 }
 
@@ -73,7 +76,7 @@ function Pong(data, client) {
   if (client.room === undefined || client.id === undefined) {
     return;
   }
-  eventQueue.add({ type: 'ping', data: { room: client.room, id: client.id } });
+  eventQueue.add({ type: 'ping', data: { room: client.room, client: client.id } });
 }
 
 

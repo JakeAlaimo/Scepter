@@ -1,5 +1,10 @@
 const uuidv4 = require('uuid').v4; // for creation of guids
+const Queue = require('bull');
 const redis = require('../asyncRedis.js');
+const utility = require('./utility.js');
+
+const REDIS_URL = process.env.REDISCLOUD_URL || 'redis://127.0.0.1:6379';
+const eventQueue = new Queue('event', REDIS_URL);
 
 // if no players are connected, clean up the game room
 async function CloseGame(gameID, ms) {
@@ -8,7 +13,6 @@ async function CloseGame(gameID, ms) {
 
     if (connections <= 0) {
       redis.Del(gameID); // delete this game room outright
-
       // remove from lists if necessary
       redis.LRem('Open Games', 1, gameID);
       clearInterval(interval);
@@ -21,7 +25,7 @@ async function CreateGame(settings) {
   const gameID = uuidv4(); // produce an identifier for the game
 
   // configure all of the game settings
-  const settingsFormatted = []; //will store settings in the format '[key1, val1, ...]'
+  const settingsFormatted = []; // will store settings in the format '[key1, val1, ...]'
   Object.entries(settings).forEach((keyVal) => settingsFormatted.push(keyVal[0], keyVal[1]));
   await redis.HMSet(gameID, settingsFormatted);
 
@@ -34,20 +38,19 @@ async function CreateGame(settings) {
     redis.LPush('Open Games', gameID);
   }
 
-  CloseGame(gameID, 6000000); // close the game room when empty
+  CloseGame(gameID, 60000); // close the game room when empty
 
   return gameID;
 }
 
 // after an interval, reopen the game if the 2nd player hasn't connected
 async function ReopenGame(gameID, ms) {
-  setTimeout(async () => {
-    const numPlayers = await redis.HGet(gameID, 'NumPlayers');
+  await utility.Wait(ms);
 
-    if (numPlayers < 2) {
-      redis.LPush('Open Games', gameID);
-    }
-  }, ms);
+  const numPlayers = await redis.HGet(gameID, 'NumPlayers');
+  if (numPlayers < 2) {
+    redis.LPush('Open Games', gameID);
+  }
 }
 
 // checks if an open game with the given settings exists. If not, creates one
@@ -76,4 +79,31 @@ async function GetGame(data) {
 }
 
 
+// update game state and set client as player/spectator on game connection
+async function JoinGame(data) {
+  console.log(`${data.client} has joined room ${data.room}. Hi!`);
+
+  redis.HIncrBy(data.room, 'NumConnected', 1);
+
+  const numPlayers = await redis.HGet(data.room, 'NumPlayers');
+
+  // player is one of the first 2 to join, set as player
+  if (numPlayers < 2) {
+    redis.HIncrBy(data.room, 'NumPlayers', 1);
+  }
+
+  // schedule the first ping
+  eventQueue.add({ type: 'ping', data: { room: data.room, client: data.client } });
+  // return utility.Ping(data);
+}
+
+// update game state on client disconnection
+async function LeaveGame(data) {
+  console.log(`${data.client} has left room ${data.room}. Bye!`);
+  // TO-DO: validate that they were connected and whether they were a player
+  redis.HIncrBy(data.room, 'NumConnected', -1);
+}
+
 module.exports.GetGame = GetGame;
+module.exports.JoinGame = JoinGame;
+module.exports.LeaveGame = LeaveGame;

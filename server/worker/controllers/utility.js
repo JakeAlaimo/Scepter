@@ -10,15 +10,9 @@ async function Ping(data) {
   // ping within 55 seconds to prevent timeout on heroku
   await Wait(40000);
   // return value tells the web node to send the ping
-  return { room: data.room, client: data.id, data: { type: 'ping' } };
-}
-
-// logs a welcome message and sets the first ping
-function JoinRoom(data) {
-  console.log(`${data.id} has joined room ${data.room}. Hi!`);
-  return Ping(data);
+  return { room: data.room, client: data.client, data: { type: 'ping' } };
 }
 
 
-module.exports.JoinRoom = JoinRoom;
+module.exports.Wait = Wait;
 module.exports.Ping = Ping;
