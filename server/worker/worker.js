@@ -9,9 +9,19 @@
 
 const throng = require('throng');
 const Queue = require('bull');
+const mongoose = require('mongoose');
 const HandleEvent = require('./handler.js');
 
 const REDIS_URL = process.env.REDISCLOUD_URL || 'redis://127.0.0.1:6379';
+const dbURL = process.env.MONGODB_URI || 'mongodb://localhost/Scepter';
+
+// connect to mongoDB
+mongoose.connect(dbURL, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+  if (err) {
+    console.log("Couldn't connect to database");
+    throw err;
+  }
+});
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 const workers = process.env.WEB_CONCURRENCY || 1;

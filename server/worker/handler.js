@@ -4,13 +4,17 @@ const controllers = require('./controllers');
 
 // maps the event type to the work to be done as result of it
 const work = {
-  log: (data) => { console.log(data.message); },
+  // ws
   join: controllers.game.JoinGame,
   disconnect: controllers.game.LeaveGame,
   ping: controllers.utility.Ping,
-  'game requested': controllers.game.GetGame,
   text: (data) => ({ room: data.room, data: { type: 'chat', message: data.text } }),
 
+  // non-ws
+  log: (data) => { console.log(data.message); },
+  login: controllers.account.Login,
+  signup: controllers.account.Signup,
+  'game requested': controllers.game.GetGame,
 };
 
 async function Handle(job) {

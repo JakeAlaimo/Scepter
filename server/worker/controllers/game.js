@@ -69,13 +69,13 @@ async function GetGame(data) {
 
     // a suitable game was found among the openings
     if (game) {
-      return { status: '200', data: {gameURL: `/game/${game}`} };
+      return { status: '200', data: { gameURL: `/game/${game}` } };
     }
   }
 
   // no public game suitable, create a new one
   const gameID = await CreateGame(data);
-  return { status: '200', data: {gameURL: `/game/${gameID}`} };
+  return { status: '200', data: { gameURL: `/game/${gameID}` } };
 }
 
 
