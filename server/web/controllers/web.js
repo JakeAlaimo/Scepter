@@ -67,7 +67,7 @@ async function PollJob(req, res) {
     // job finished, send its data
     const result = job.returnvalue;
     const reason = job.failedReason;
-    res.status(200).json({ id, result, reason });
+    res.status(result.status).json({ id, result: result.data, reason });
 
     // now that the data has been retrieved, remove this job from the queue
     job.remove();
