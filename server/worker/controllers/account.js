@@ -1,7 +1,7 @@
 const Account = require('../models/account.js');
 
 // tries to log the client in based on the credentials provided
-function Login(data) {
+async function Login(data) {
   // force cast to strings to cover some security flaws
   const username = `${data.username}`;
   const password = `${data.password}`;
@@ -10,20 +10,19 @@ function Login(data) {
     return { status: 400, data: { error: 'All fields are required.' } };
   }
 
-  return Account.AccountModel.authenticate(username, password, (err, account) => {
-    if (err || !account) {
-      return { status: 401, data: { error: 'Wrong username or password.' } };
-    }
+  const account = await Account.AccountModel.Authenticate(username, password).exec();
 
-    // TO-DO: add session support, use sessions with connect/disconnect/reconnect
-    // req.session.account = Account.AccountModel.toAPI(account);
+  if (!account) {
+    return { status: 401, data: { error: 'Wrong username or password.' } };
+  }
 
-    return { status: 200, data: { success: 'Successfully logged in.' } };
-  });
+  // TO-DO: add session support, use sessions with connect/disconnect/reconnect
+  // req.session.account = Account.AccountModel.toAPI(account);
+  return { status: 200, data: { success: 'Successfully logged in.' } };
 }
 
 // tries to add a new account to the database base on data provided
-function Signup(data) {
+async function Signup(data) {
   // cast to strings to cover up some security flaws
   const username = `${data.username}`;
   const password = `${data.password}`;
@@ -36,32 +35,30 @@ function Signup(data) {
     return { status: 400, data: { error: 'Passwords do not match.' } };
   }
 
-  return Account.AccountModel.generateHash(password, (salt, hash) => {
-    const accountData = {
-      username,
-      salt,
-      password: hash,
-    };
+  // password are hashed for security purposes
+  const hashResults = await Account.AccountModel.GenerateHash(password);
 
-    const newAccount = new Account.AccountModel(accountData);
+  const accountData = {
+    username,
+    salt: hashResults.salt,
+    password: hashResults.hash,
+  };
 
-    const savePromise = newAccount.save();
+  const newAccount = new Account.AccountModel(accountData);
 
-    savePromise.then(() => ({ status: 200, data: { success: 'Account successfully created.' } }));
-    // TO-DO: use session to log user in
-    // req.session.account = Account.AccountModel.toAPI(newAccount);
+  // TO-DO: use session to log user in
+  // req.session.account = Account.AccountModel.toAPI(newAccount);
 
-
-    savePromise.catch((err) => {
-      console.log(err);
-
-      if (err.code === 11000) {
-        return { status: 400, data: { error: 'Username already in use.' } };
-      }
-
-      return { status: 400, data: { error: 'An error occurred.' } };
-    });
-  });
+  try {
+    await newAccount.save();
+    return { status: 200, data: { success: 'Account successfully created.' } };
+  } catch (err) {
+    console.log(err);
+    if (err.code === 11000) {
+      return { status: 400, data: { error: 'Username already in use.' } };
+    }
+    return { status: 400, data: { error: 'An error occurred.' } };
+  }
 }
 
 // const getToken = (request, response) => {

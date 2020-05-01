@@ -46,10 +46,12 @@ const AccountSchema = new mongoose.Schema({
   wins: {
     type: Number,
     default: 0,
+    min: 0,
   },
   losses: {
     type: Number,
     default: 0,
+    min: 0,
   },
   replays: {
     type: Array,
@@ -63,6 +65,7 @@ const AccountSchema = new mongoose.Schema({
   totalPlaytime: {
     type: Number,
     default: 0,
+    min: 0,
   },
   createdDate: {
     type: Date,
@@ -87,37 +90,44 @@ const validatePassword = (doc, password, callback) => {
   });
 };
 
-AccountSchema.statics.findByUsername = (name, callback) => {
+// wraps the results of a username db query in a promise, so it can be awaited
+AccountSchema.statics.FindByUsername = async function FindByUsername(name) {
   const search = {
     username: name,
   };
 
-  return AccountModel.findOne(search, callback);
+  try {
+    return await this.findOne(search).exec();
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
 };
 
-AccountSchema.statics.generateHash = (password, callback) => {
+// Secures password storage with a cryptographic hash, returning the hash and its salt
+AccountSchema.statics.GenerateHash = function GenerateHash(password) {
   const salt = crypto.randomBytes(saltLength);
 
-  crypto.pbkdf2(password, salt, iterations, keyLength, 'RSA-SHA512', (err, hash) => callback(salt, hash.toString('hex')));
+  return new Promise((res, rej) => {
+    crypto.pbkdf2(password, salt, iterations, keyLength, 'RSA-SHA512',
+      (err, hash) => (err ? rej(err) : res({ salt, hash: hash.toString('hex') })));
+  });
 };
 
-AccountSchema.statics.authenticate = (username, password, callback) => {
-  AccountModel.findByUsername(username, (err, doc) => {
-    if (err) {
-      return callback(err);
+// Returns the associated account if username and password are correct
+AccountSchema.statics.Authenticate = async function Authenticate(username, password) {
+  const account = await this.findByUsername(username);
+
+  // no account to return if we can't find it
+  if (!account) {
+    return null;
+  }
+
+  return validatePassword(account, password, (result) => {
+    if (result === true) {
+      return account;
     }
-
-    if (!doc) {
-      return callback();
-    }
-
-    return validatePassword(doc, password, (result) => {
-      if (result === true) {
-        return callback(null, doc);
-      }
-
-      return callback();
-    });
+    return null;
   });
 };
 
