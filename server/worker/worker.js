@@ -36,11 +36,9 @@ function Start() {
 }
 
 
-
 if (process.env.NODE_ENV === 'production') {
   // Initialize the clustered worker process
   throng({ workers, start: Start });
-  module.exports.requiresSecure = requiresSecure;
 } else {
   Start();
 }

@@ -45,29 +45,29 @@ async function AddTestJob(req, res) {
   AddEvent(res, event);
 }
 
-//note that the client must poll the job to see if they've succeeded in logging in
+// note that the client must poll the job to see if they've succeeded in logging in
 function Login(req, res) {
   const event = {
-    type: "login",
+    type: 'login',
     data: {
       username: req.body.username,
       password: req.body.password,
-    }
-  }
+    },
+  };
 
   AddEvent(res, event);
 }
 
-//note that the client must poll the job to see if they've succeeded in signing up
+// note that the client must poll the job to see if they've succeeded in signing up
 function Signup(req, res) {
   const event = {
-    type: "signup",
+    type: 'signup',
     data: {
       username: req.body.username,
       password: req.body.password,
       password2: req.body.password2,
-    }
-  }
+    },
+  };
 
   AddEvent(res, event);
 }
@@ -95,9 +95,9 @@ async function PollJob(req, res) {
     const result = job.returnvalue;
     const failed = job.failedReason;
 
-    if(failed){
-      console.log(failed); //log fail reason, but don't pass it to the user
-      res.status(400).json({ id, error: "Job failed to complete." });
+    if (failed) {
+      console.log(failed); // log fail reason, but don't pass it to the user
+      res.status(400).json({ id, error: 'Job failed to complete.' });
     } else {
       res.status(result.status).json({ id, result: result.data });
     }

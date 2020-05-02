@@ -82,11 +82,11 @@ AccountSchema.statics.toAPI = (doc) => ({
 function ValidatePassword(doc, password) {
   const pass = doc.password;
 
-  return new Promise((res, rej) => {
+  return new Promise((res) => {
     crypto.pbkdf2(password, doc.salt, iterations, keyLength, 'RSA-SHA512',
-      (err, hash) => (res(!err && hash.toString('hex') === pass))); //returns true if hash matches, false otherwise
+      (err, hash) => (res(!err && hash.toString('hex') === pass))); // returns true if hash matches, false otherwise
   });
-};
+}
 
 // wraps the results of a username db query in a promise, so it can be awaited
 AccountSchema.statics.FindByUsername = async function FindByUsername(name) {
@@ -94,11 +94,10 @@ AccountSchema.statics.FindByUsername = async function FindByUsername(name) {
     username: name,
   };
 
-  return await this.findOne(search).exec().catch(err => {
+  return this.findOne(search).exec().catch((err) => {
     console.log(err);
     return null;
   });
-
 };
 
 // Secures password storage with a cryptographic hash, returning the hash and its salt
@@ -119,7 +118,7 @@ AccountSchema.statics.Authenticate = async function Authenticate(username, passw
   if (!account) {
     return null;
   }
-  let result = await ValidatePassword(account, password);
+  const result = await ValidatePassword(account, password);
 
   return (result) ? account : null;
 };
