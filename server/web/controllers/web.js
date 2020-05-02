@@ -45,7 +45,8 @@ async function AddTestJob(req, res) {
   AddEvent(res, event);
 }
 
-// note that the client must poll the job to see if they've succeeded in logging in
+// account creation/login functions below
+// note that the client must poll these jobs to see if they've succeeded
 function Login(req, res) {
   const event = {
     type: 'login',
@@ -57,8 +58,6 @@ function Login(req, res) {
 
   AddEvent(res, event);
 }
-
-// note that the client must poll the job to see if they've succeeded in signing up
 function Signup(req, res) {
   const event = {
     type: 'signup',
@@ -66,6 +65,19 @@ function Signup(req, res) {
       username: req.body.username,
       password: req.body.password,
       password2: req.body.password2,
+    },
+  };
+
+  AddEvent(res, event);
+}
+function ChangePassword(req, res) {
+  const event = {
+    type: 'changePassword',
+    data: {
+      username: req.body.username,
+      password: req.body.password,
+      newPassword: req.body.newPassword,
+      newPassword2: req.body.newPassword2,
     },
   };
 
@@ -115,5 +127,6 @@ module.exports.AddTestJob = AddTestJob;
 
 module.exports.Login = Login;
 module.exports.Signup = Signup;
+module.exports.ChangePassword = ChangePassword;
 
 module.exports.PollJob = PollJob;

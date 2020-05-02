@@ -1,17 +1,37 @@
 const Account = require('../models/account.js');
 
-// tries to log the client in based on the credentials provided
-async function Login(data) {
-  // force cast to strings to cover some security flaws
-  const username = `${data.username}`;
-  const password = `${data.password}`;
+// ensures that all the necessary data is provided and valid
+function ValidateInput(data, context) {
+  // cast to strings to cover up some security flaws
+  const input = {
+    username: `${data.username}`,
+    password: `${data.password}`,
+    password2: `${data.password2}`,
+    newPassword: `${data.newPassword}`,
+    newPassword2: `${data.newPassword2}`,
+  };
 
-  if (!username || !password) {
-    return { status: 400, data: { error: 'All fields are required.' } };
+  if (!data.username || !data.password || (context === 'signup' && !data.password2)
+     || (context === 'changePassword' && (!data.newPassword || !data.newPassword2))) {
+    input.error = { status: 400, data: { error: 'All fields are required.' } };
+  } else if (context === 'signup' && input.password !== input.password2) {
+    input.error = { status: 400, data: { error: 'Passwords do not match.' } };
+  } else if (input.newPassword !== input.newPassword2) {
+    input.error = { status: 400, data: { error: 'New passwords do not match.' } };
   }
 
-  const account = await Account.AccountModel.Authenticate(username, password);
+  return input;
+}
 
+// tries to log the client in based on the credentials provided
+async function Login(data) {
+  const input = ValidateInput(data);
+
+  if (input.error) {
+    return input.error;
+  }
+
+  const account = await Account.AccountModel.Authenticate(input.username, input.password);
   if (!account) {
     return { status: 401, data: { error: 'Wrong username or password.' } };
   }
@@ -23,23 +43,17 @@ async function Login(data) {
 
 // tries to add a new account to the database base on data provided
 async function Signup(data) {
-  // cast to strings to cover up some security flaws
-  const username = `${data.username}`;
-  const password = `${data.password}`;
-  const password2 = `${data.password2}`;
+  const input = ValidateInput(data, 'signup');
 
-  if (!username || !password || !password2) {
-    return { status: 400, data: { error: 'All fields are required.' } };
-  }
-  if (password !== password2) {
-    return { status: 400, data: { error: 'Passwords do not match.' } };
+  if (input.error) {
+    return input.error;
   }
 
   // password are hashed for security purposes
-  const hashResults = await Account.AccountModel.GenerateHash(password);
+  const hashResults = await Account.AccountModel.GenerateHash(input.password);
 
   const accountData = {
-    username,
+    username: input.username,
     salt: hashResults.salt,
     password: hashResults.hash,
   };
@@ -49,16 +63,37 @@ async function Signup(data) {
   // TO-DO: use session to log user in
   // req.session.account = Account.AccountModel.toAPI(newAccount);
 
-  try {
-    await newAccount.save();
-    return { status: 200, data: { success: 'Account successfully created.' } };
-  } catch (err) {
-    console.log(err);
-    if (err.code === 11000) {
-      return { status: 400, data: { error: 'Username already in use.' } };
-    }
-    return { status: 400, data: { error: 'An error occurred.' } };
+  return newAccount.save().then(() => ({ status: 200, data: { success: 'Account successfully created.' } }))
+    .catch((err) => {
+      console.log(err);
+      if (err.code === 11000) {
+        return { status: 400, data: { error: 'Username already in use.' } };
+      }
+      return { status: 400, data: { error: 'An error occurred.' } };
+    });
+}
+
+// Updates existing doc if given the appropriate credentials
+async function ChangePassword(data) {
+  const input = ValidateInput(data, 'changePassword');
+
+  if (input.error) {
+    return input.error;
   }
+
+  const account = await Account.AccountModel.Authenticate(input.username, input.password);
+  if (!account) {
+    return { status: 401, data: { error: 'Wrong username or password.' } };
+  }
+
+  // hash new password
+  const hashResults = await Account.AccountModel.GenerateHash(input.newPassword);
+
+  // update password data
+  account.salt = hashResults.salt;
+  account.password = hashResults.hash;
+  return account.save().then(() => ({ status: 200, data: { success: 'Password successfully updated.' } }))
+    .catch(() => ({ status: 400, data: { error: 'Password failed to update.' } }));
 }
 
 // const getToken = (request, response) => {
@@ -74,3 +109,4 @@ async function Signup(data) {
 
 module.exports.Login = Login;
 module.exports.Signup = Signup;
+module.exports.ChangePassword = ChangePassword;

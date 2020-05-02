@@ -16,6 +16,7 @@ const router = (app, wss) => {
 
   app.post('/login', controllers.web.Login);
   app.post('/signup', controllers.web.Signup);
+  app.post('/changePassword', controllers.web.ChangePassword);
 
 
   // websocket handling config

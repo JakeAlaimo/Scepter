@@ -14,6 +14,7 @@ const work = {
   log: (data) => { console.log(data.message); },
   login: controllers.account.Login,
   signup: controllers.account.Signup,
+  changePassword: controllers.account.ChangePassword,
   'game requested': controllers.game.GetGame,
 };
 
