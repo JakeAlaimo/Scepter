@@ -79,14 +79,12 @@ AccountSchema.statics.toAPI = (doc) => ({
   _id: doc._id,
 });
 
-const validatePassword = (doc, password, callback) => {
+function ValidatePassword(doc, password) {
   const pass = doc.password;
 
-  return crypto.pbkdf2(password, doc.salt, iterations, keyLength, 'RSA-SHA512', (err, hash) => {
-    if (hash.toString('hex') !== pass) {
-      return callback(false);
-    }
-    return callback(true);
+  return new Promise((res, rej) => {
+    crypto.pbkdf2(password, doc.salt, iterations, keyLength, 'RSA-SHA512',
+      (err, hash) => (res(!err && hash.toString('hex') === pass))); //returns true if hash matches, false otherwise
   });
 };
 
@@ -96,12 +94,11 @@ AccountSchema.statics.FindByUsername = async function FindByUsername(name) {
     username: name,
   };
 
-  try {
-    return await this.findOne(search).exec();
-  } catch (err) {
+  return await this.findOne(search).exec().catch(err => {
     console.log(err);
     return null;
-  }
+  });
+
 };
 
 // Secures password storage with a cryptographic hash, returning the hash and its salt
@@ -116,19 +113,15 @@ AccountSchema.statics.GenerateHash = function GenerateHash(password) {
 
 // Returns the associated account if username and password are correct
 AccountSchema.statics.Authenticate = async function Authenticate(username, password) {
-  const account = await this.findByUsername(username);
+  const account = await this.FindByUsername(username);
 
   // no account to return if we can't find it
   if (!account) {
     return null;
   }
+  let result = await ValidatePassword(account, password);
 
-  return validatePassword(account, password, (result) => {
-    if (result === true) {
-      return account;
-    }
-    return null;
-  });
+  return (result) ? account : null;
 };
 
 AccountModel = mongoose.model('Account', AccountSchema);

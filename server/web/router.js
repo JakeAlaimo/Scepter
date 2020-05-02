@@ -14,6 +14,10 @@ const router = (app, wss) => {
   app.post('/requestGame', controllers.web.RequestGame);
   app.post('/test', controllers.web.AddTestJob);
 
+  app.post('/login', controllers.web.Login);
+  app.post('/signup', controllers.web.Signup);
+
+
   // websocket handling config
   wss.on('connection', (socket) => {
     const ws = socket;

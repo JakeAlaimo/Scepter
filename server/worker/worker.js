@@ -35,5 +35,12 @@ function Start() {
   eventQueue.process(maxJobsPerWorker, HandleEvent);
 }
 
-// Initialize the clustered worker process
-throng({ workers, start: Start });
+
+
+if (process.env.NODE_ENV === 'production') {
+  // Initialize the clustered worker process
+  throng({ workers, start: Start });
+  module.exports.requiresSecure = requiresSecure;
+} else {
+  Start();
+}

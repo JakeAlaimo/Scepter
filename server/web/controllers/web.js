@@ -26,7 +26,6 @@ function LoadGame(req, res) {
   res.render('game', { id: req.params.id });
 }
 
-
 // look for (or create) a game matching the provided settings
 async function RequestGame(req, res) {
   const event = {
@@ -46,6 +45,34 @@ async function AddTestJob(req, res) {
   AddEvent(res, event);
 }
 
+//note that the client must poll the job to see if they've succeeded in logging in
+function Login(req, res) {
+  const event = {
+    type: "login",
+    data: {
+      username: req.body.username,
+      password: req.body.password,
+    }
+  }
+
+  AddEvent(res, event);
+}
+
+//note that the client must poll the job to see if they've succeeded in signing up
+function Signup(req, res) {
+  const event = {
+    type: "signup",
+    data: {
+      username: req.body.username,
+      password: req.body.password,
+      password2: req.body.password2,
+    }
+  }
+
+  AddEvent(res, event);
+}
+
+
 // exposes functionality for the client to check on the results of a specific job
 // when the server adds a job to the queue, it always responds with the job's id
 // NOTE: jobs don't track who requested them, enure they never return sensitive data
@@ -60,14 +87,20 @@ async function PollJob(req, res) {
   }
 
   // the job has not yet finished
-  if (job.finishedOn === null) {
+  if (!job.finishedOn) {
     // notify the client the job is ongoing. If applicable, communicate progress
     res.status(202).json({ id: job.id, progress: job._progress });
   } else {
     // job finished, send its data
     const result = job.returnvalue;
-    const reason = job.failedReason;
-    res.status(result.status).json({ id, result: result.data, reason });
+    const failed = job.failedReason;
+
+    if(failed){
+      console.log(failed); //log fail reason, but don't pass it to the user
+      res.status(400).json({ id, error: "Job failed to complete." });
+    } else {
+      res.status(result.status).json({ id, result: result.data });
+    }
 
     // now that the data has been retrieved, remove this job from the queue
     job.remove();
@@ -79,5 +112,8 @@ module.exports.LoadGame = LoadGame;
 module.exports.IsTestBuild = IsTestBuild;
 module.exports.RequestGame = RequestGame;
 module.exports.AddTestJob = AddTestJob;
+
+module.exports.Login = Login;
+module.exports.Signup = Signup;
 
 module.exports.PollJob = PollJob;

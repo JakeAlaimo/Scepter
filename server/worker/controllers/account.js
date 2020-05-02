@@ -10,7 +10,7 @@ async function Login(data) {
     return { status: 400, data: { error: 'All fields are required.' } };
   }
 
-  const account = await Account.AccountModel.Authenticate(username, password).exec();
+  const account = await Account.AccountModel.Authenticate(username, password);
 
   if (!account) {
     return { status: 401, data: { error: 'Wrong username or password.' } };
