@@ -49,7 +49,7 @@ async function AddTestJob(req, res) {
 async function GetLeaderboard(req, res) {
   const event = {
     type: 'sortBy',
-    data: { 
+    data: {
       attr: req.body.attr,
       offset: req.body.offset,
       limit: req.body.limit,
@@ -98,6 +98,11 @@ function ChangePassword(req, res) {
   AddEvent(res, event);
 }
 
+// Destroys the session, which should carry over to ws connections as well
+function Logout(req, res) {
+  req.session.destroy();
+  res.status(200).json({ message: 'Successfully logged out.' });
+}
 
 // exposes functionality for the client to check on the results of a specific job
 // when the server adds a job to the queue, it always responds with the job's id
@@ -125,7 +130,7 @@ async function PollJob(req, res) {
       console.log(failed); // log fail reason, but don't pass it to the user
       res.status(400).json({ id, error: 'Job failed to complete.' });
     } else {
-      if(result.account) { //log the user in if account session is given
+      if (result.account) { // log the user in if account session is given
         req.session.account = result.account;
       }
       res.status(result.status).json({ id, result: result.data });
@@ -148,5 +153,7 @@ module.exports.GetLeaderboard = GetLeaderboard;
 module.exports.Login = Login;
 module.exports.Signup = Signup;
 module.exports.ChangePassword = ChangePassword;
+module.exports.Logout = Logout;
+
 
 module.exports.PollJob = PollJob;

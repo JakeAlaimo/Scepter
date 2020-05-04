@@ -10,10 +10,16 @@ const REDIS_URL = process.env.REDISCLOUD_URL || 'redis://127.0.0.1:6379';
 const redisClient = redis.createClient(REDIS_URL);
 const eventQueue = new Queue('event', REDIS_URL);
 
+// ws connections that have not yet joined a room
+const floatingClients = [];
 
 // the websocket connections this server is maintaining, organized by rooms
 // members of each room are websocket connections indexed by ID
 const rooms = {};
+
+function TrackConnection(ws) {
+  floatingClients.push(ws);
+}
 
 // removes websocket connection from this server's address book
 function RemoveClient(room, id) {
@@ -29,12 +35,23 @@ function RemoveClient(room, id) {
 }
 
 // helper function to set up client once their room is known to exist
-function AddClient(room, websocket) {
-  const client = websocket;
+function AddClient(room, req) {
+  const client = floatingClients.find((cli) => (cli.joinID === req.body.joinID));
+
+  // there should have been a client discovered
+  if (!client) { return; }
+
+  // remove client from floatingClients
+  const index = floatingClients.indexOf(client);
+  if (index > -1) {
+    floatingClients.splice(index, 1);
+  }
 
   const id = uuidv4();
+
   client.id = id;
   client.room = room;
+  client.session = req.session; // track session within the ws
 
   rooms[room][id] = client; // add the client to the room, indexed by their ID
   eventQueue.add({ type: 'join', data: { client: id, room } }); // let all in the room know that they've joined
@@ -42,12 +59,14 @@ function AddClient(room, websocket) {
 }
 
 // adds websocket connection to the specified room (if it exists)
-function AddToRoom(data, websocket) {
-  const { room } = data;
+function AddToRoom(req, res) {
+  const { room } = req.body;
+
+  res.status(204).json();
 
   // exists since we already know about it
   if (rooms[room] !== undefined && rooms[room] !== null) {
-    AddClient(room, websocket);
+    AddClient(room, req);
     return;
   }
 
@@ -60,7 +79,7 @@ function AddToRoom(data, websocket) {
     // there is an entry for this room
     if (reply === 1) {
       rooms[room] = {}; // init this room so we can store clients
-      AddClient(room, websocket);
+      AddClient(room, req);
     }
   });
 }
@@ -116,6 +135,7 @@ eventQueue.on('global:completed', (jobId, result) => {
   }
 });
 
+module.exports.TrackConnection = TrackConnection;
 
 module.exports.AddToRoom = AddToRoom;
 module.exports.TestText = TestText;

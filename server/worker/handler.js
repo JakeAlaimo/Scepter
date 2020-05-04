@@ -19,7 +19,7 @@ const work = {
   sortBy: controllers.account.SortBy,
 
 
-  //no response
+  // no response
   win: controllers.account.AddWin,
   loss: controllers.account.AddLoss,
 };

@@ -10,14 +10,18 @@ function PollJob(jobID, ms, callback){
   let interval = setInterval(function(){
     SendAJAX("GET", `/job/${jobID}`, null, function(response, status){
       if(status === 200){
-        clearInterval(interval);
         callback(response);
       }
+      clearInterval(interval);
     });
   }, ms);
 }
 
 window.onload = () => {
+
+  SendAJAX("POST", "/login", {username: "test", password: "woop2"}, function(response){
+    PollJob(response.id, 50, (response) => { console.log(response) });
+  });
 
   document.querySelector("#publicGame").onclick = () => {
     SendAJAX("POST", "/requestGame", {public: true}, function(response){

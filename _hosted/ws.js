@@ -5,26 +5,27 @@ class Socket {
     this.sock = (isLocal) ? new WebSocket("ws:127.0.0.1:3000"): new WebSocket("wss:scepter-game.herokuapp.com");
     this.room = document.querySelector("#room").value;
 
-    this.sock.addEventListener("message", this.Receive);
-
     this.sock.addEventListener('open', () => {
         //join the appropriate room
-        this.Send(JSON.stringify({type: "join", data:{room: this.room}}));
+        //this.Send(JSON.stringify({type: "join", data:{room: this.room}}));
+        this.sock.addEventListener("message", (msg)=> this.Receive(msg));
+
+        
     });
   }
 
-  Send = (msg) => {
+  Send(msg) {
     if(this.sock.readyState == WebSocket.OPEN) {
       this.sock.send(msg);
     }
   }
 
-  Receive = (msg) => {
+  Receive(msg) {
     let msgData = JSON.parse(msg.data);
 
     switch(msgData.type){
         case 'ping':
-            this.Send(JSON.stringify({type: "pong"}));
+            this.sock.send(JSON.stringify({type: "pong"}));
             break;
         case 'chat':
             let li = document.createElement("li");
@@ -33,8 +34,15 @@ class Socket {
 
             document.querySelector("#chat ul").appendChild(li);
             break;
+        case 'claimSession':
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", '/joinGame');
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = () => {console.log("joined game?");};
+            xhr.send(JSON.stringify({joinID: msgData.data.joinID, room: this.room}));
+            break;
         default:
-            document.querySelector("p").innerHTML = msg.data;
+            document.querySelector("p").innerHTML = msgData;
         break;
     }
   }
@@ -48,9 +56,7 @@ function Init() {
           socket.Send(JSON.stringify({type:"input", data: {text: document.querySelector("textarea").value}}));
       };
   });
-
-   
 }
 
 
-window.onload = Init
+window.onload = Init;

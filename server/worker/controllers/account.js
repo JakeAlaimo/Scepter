@@ -97,33 +97,35 @@ async function ChangePassword(data) {
 
 
 async function AddWin(data) {
-  let username = `${data.username}`;
+  const username = `${data.username}`;
 
   const account = await Account.AccountModel.FindByUsername(username);
   if (!account) {
-    return; //wrong username
+    return; // wrong username
   }
 
   account.wins += 1;
   account.save();
 }
 async function AddLoss(data) {
-  let username = `${data.username}`;
-  
+  const username = `${data.username}`;
+
   const account = await Account.AccountModel.FindByUsername(username);
   if (!account) {
-    return; //wrong username
+    return; // wrong username
   }
-  
+
   account.losses += 1;
   account.save();
 }
 
-//returns a list of accounts sorted by some attribute
-async function SortBy(params) 
-{
+// returns a list of accounts sorted by some attribute
+async function SortBy(params) {
   const attr = `${params.attr}`;
-  let promise = Account.AccountModel.find({}, null, {skip: params.offset, limit: params.limit}).sort(attr).exec();
+  const promise = Account.AccountModel.find({}, null, {
+    skip: params.offset,
+    limit: params.limit,
+  }).sort(attr).exec();
   return promise.then((list) => ({ status: 200, data: { list } }))
     .catch(() => ({ status: 400, data: { error: 'Failed to get list.' } }));
 }
@@ -146,6 +148,3 @@ module.exports.AddWin = AddWin;
 module.exports.AddLoss = AddLoss;
 
 module.exports.SortBy = SortBy;
-
-
-
