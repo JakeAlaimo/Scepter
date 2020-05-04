@@ -26,6 +26,11 @@ function LoadGame(req, res) {
   res.render('game', { id: req.params.id });
 }
 
+// incorrect file requested
+function FileNotFound(req, res) {
+  res.render('404');
+}
+
 // look for (or create) a game matching the provided settings
 async function RequestGame(req, res) {
   const event = {
@@ -145,6 +150,8 @@ async function PollJob(req, res) {
 module.exports.LoadGame = LoadGame;
 module.exports.IsTestBuild = IsTestBuild;
 module.exports.RequestGame = RequestGame;
+module.exports.FileNotFound = FileNotFound;
+
 module.exports.AddTestJob = AddTestJob;
 
 module.exports.GetLeaderboard = GetLeaderboard;

@@ -25,6 +25,8 @@ const router = (app, wss) => {
   // pairs session data with ws connection
   app.post('/joinGame', controllers.websocket.AddToRoom);
 
+  // finally, a 404 page for everything else
+  app.get('*', controllers.web.FileNotFound);
 
   // websocket handling config
   wss.on('connection', (socket) => {
