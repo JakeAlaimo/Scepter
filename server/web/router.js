@@ -10,6 +10,8 @@ const router = (app, wss) => {
   app.get('/job/:id', controllers.web.PollJob);
   app.get('/game/:id', controllers.web.LoadGame);
   app.get('/isLocal', controllers.web.IsTestBuild);
+  app.get('/leaderboard', controllers.web.GetLeaderboard);
+
 
   app.post('/requestGame', controllers.web.RequestGame);
   app.post('/test', controllers.web.AddTestJob);
@@ -18,10 +20,11 @@ const router = (app, wss) => {
   app.post('/signup', controllers.web.Signup);
   app.post('/changePassword', controllers.web.ChangePassword);
 
-
   // websocket handling config
-  wss.on('connection', (socket) => {
+  wss.on('connection', (socket, req) => {
     const ws = socket;
+
+    //ws.session = req.session;
 
     // configure the message 'routes' of the websocket
     ws.input = controllers.websocket.TestText;

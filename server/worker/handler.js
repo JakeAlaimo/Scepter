@@ -16,6 +16,8 @@ const work = {
   signup: controllers.account.Signup,
   changePassword: controllers.account.ChangePassword,
   'game requested': controllers.game.GetGame,
+  sortBy: controllers.account.SortBy,
+
 
   //no response
   win: controllers.account.AddWin,

@@ -45,6 +45,20 @@ async function AddTestJob(req, res) {
   AddEvent(res, event);
 }
 
+// returns leaderboard page sorted by (and, optionally, limited to)
+async function GetLeaderboard(req, res) {
+  const event = {
+    type: 'sortBy',
+    data: { 
+      attr: req.body.attr,
+      offset: req.body.offset,
+      limit: req.body.limit,
+    },
+  };
+
+  AddEvent(res, event);
+}
+
 // account creation/login functions below
 // note that the client must poll these jobs to see if they've succeeded
 function Login(req, res) {
@@ -111,6 +125,9 @@ async function PollJob(req, res) {
       console.log(failed); // log fail reason, but don't pass it to the user
       res.status(400).json({ id, error: 'Job failed to complete.' });
     } else {
+      if(result.account) { //log the user in if account session is given
+        req.session.account = result.account;
+      }
       res.status(result.status).json({ id, result: result.data });
     }
 
@@ -124,6 +141,9 @@ module.exports.LoadGame = LoadGame;
 module.exports.IsTestBuild = IsTestBuild;
 module.exports.RequestGame = RequestGame;
 module.exports.AddTestJob = AddTestJob;
+
+module.exports.GetLeaderboard = GetLeaderboard;
+
 
 module.exports.Login = Login;
 module.exports.Signup = Signup;

@@ -108,17 +108,25 @@ async function AddWin(data) {
   account.save();
 }
 async function AddLoss(data) {
-    let username = `${data.username}`;
+  let username = `${data.username}`;
   
-    const account = await Account.AccountModel.FindByUsername(username);
-    if (!account) {
-      return; //wrong username
-    }
+  const account = await Account.AccountModel.FindByUsername(username);
+  if (!account) {
+    return; //wrong username
+  }
   
-    account.losses += 1;
-    account.save();
+  account.losses += 1;
+  account.save();
 }
 
+//returns a list of accounts sorted by some attribute
+async function SortBy(params) 
+{
+  const attr = `${params.attr}`;
+  let promise = Account.AccountModel.find({}, null, {skip: params.offset, limit: params.limit}).sort(attr).exec();
+  return promise.then((list) => ({ status: 200, data: { list } }))
+    .catch(() => ({ status: 400, data: { error: 'Failed to get list.' } }));
+}
 // const getToken = (request, response) => {
 //   const req = request;
 //   const res = response;
@@ -136,5 +144,8 @@ module.exports.ChangePassword = ChangePassword;
 
 module.exports.AddWin = AddWin;
 module.exports.AddLoss = AddLoss;
+
+module.exports.SortBy = SortBy;
+
 
 
