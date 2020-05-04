@@ -16,6 +16,10 @@ const work = {
   signup: controllers.account.Signup,
   changePassword: controllers.account.ChangePassword,
   'game requested': controllers.game.GetGame,
+
+  //no response
+  win: controllers.account.AddWin,
+  loss: controllers.account.AddLoss,
 };
 
 async function Handle(job) {

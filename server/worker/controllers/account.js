@@ -36,9 +36,9 @@ async function Login(data) {
     return { status: 401, data: { error: 'Wrong username or password.' } };
   }
 
-  // TO-DO: add session support, use sessions with connect/disconnect/reconnect
-  // req.session.account = Account.AccountModel.toAPI(account);
-  return { status: 200, data: { success: 'Successfully logged in.' } };
+
+  const accountSession = Account.AccountModel.toAPI(account);
+  return { status: 200, account: accountSession, data: { success: 'Successfully logged in.' } };
 }
 
 // tries to add a new account to the database base on data provided
@@ -60,10 +60,9 @@ async function Signup(data) {
 
   const newAccount = new Account.AccountModel(accountData);
 
-  // TO-DO: use session to log user in
-  // req.session.account = Account.AccountModel.toAPI(newAccount);
+  const accountSession = Account.AccountModel.toAPI(newAccount);
 
-  return newAccount.save().then(() => ({ status: 200, data: { success: 'Account successfully created.' } }))
+  return newAccount.save().then(() => ({ status: 200, account: accountSession, data: { success: 'Account successfully created.' } }))
     .catch((err) => {
       console.log(err);
       if (err.code === 11000) {
@@ -96,6 +95,30 @@ async function ChangePassword(data) {
     .catch(() => ({ status: 400, data: { error: 'Password failed to update.' } }));
 }
 
+
+async function AddWin(data) {
+  let username = `${data.username}`;
+
+  const account = await Account.AccountModel.FindByUsername(username);
+  if (!account) {
+    return; //wrong username
+  }
+
+  account.wins += 1;
+  account.save();
+}
+async function AddLoss(data) {
+    let username = `${data.username}`;
+  
+    const account = await Account.AccountModel.FindByUsername(username);
+    if (!account) {
+      return; //wrong username
+    }
+  
+    account.losses += 1;
+    account.save();
+}
+
 // const getToken = (request, response) => {
 //   const req = request;
 //   const res = response;
@@ -110,3 +133,8 @@ async function ChangePassword(data) {
 module.exports.Login = Login;
 module.exports.Signup = Signup;
 module.exports.ChangePassword = ChangePassword;
+
+module.exports.AddWin = AddWin;
+module.exports.AddLoss = AddLoss;
+
+
